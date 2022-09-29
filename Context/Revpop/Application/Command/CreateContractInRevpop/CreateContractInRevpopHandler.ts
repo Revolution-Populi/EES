@@ -4,8 +4,9 @@ import RepositoryInterface from "../../../Domain/RepositoryInterface";
 import {Result, Either, right, left} from "../../../../Core";
 import {UseCase} from "../../../../Core/Domain/UseCase";
 import {UnexpectedError} from "../../../../Core/Logic/AppError";
-import {DepositNotFound} from "./Errors";
+import {DepositCanNotBeProcess, DepositNotFound} from "./Errors";
 import {RedeemUnexpectedError} from "../../../Domain/Errors";
+import BlockchainApiInterface from "../../../Domain/BlockchainApiInterface";
 
 type Response = Either<
     UnexpectedError | DepositNotFound | RedeemUnexpectedError,
@@ -15,6 +16,7 @@ type Response = Either<
 export default class CreateContractInRevpopHandler implements UseCase<CreateContractInRevpop, Response> {
     constructor(
         private _repository: RepositoryInterface,
+        private _blockchainApi: BlockchainApiInterface
     ) {}
 
     async execute(command: CreateContractInRevpop): Promise<Response> {
@@ -24,7 +26,14 @@ export default class CreateContractInRevpopHandler implements UseCase<CreateCont
             return left(new DepositNotFound(command.txHash));
         }
 
+        if (deposit.value === null || deposit.revpopAccount === null) {
+            return left(new DepositCanNotBeProcess(command.txHash));
+        }
+
         //Start create contract in revpop
+        const issueAssetResult = await this._blockchainApi.issueAsset(deposit.value, deposit.revpopAccount.value)
+        console.log(issueAssetResult)
+
         const revpopContractId = Web3.utils.randomHex(16)
         //End create contract in revpop
 

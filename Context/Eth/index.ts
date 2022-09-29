@@ -8,10 +8,7 @@ import RedeemDepositHandler from "./Application/Command/RedeemDeposit/RedeemDepo
 import config from "./config";
 
 const repository = new TypeOrmRepository(DataSource)
-const contractRepository = new Web3ContractRepository(
-    config.eth.receiver,
-    config.eth.private_key
-)
+const contractRepository = new Web3ContractRepository()
 const createDepositHandler = new CreateDepositHandler(repository, contractRepository)
 const redeemDepositHandler = new RedeemDepositHandler(repository, contractRepository)
 

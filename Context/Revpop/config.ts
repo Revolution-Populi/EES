@@ -8,6 +8,12 @@ const config = {
         port: parseInt(process.env.REVPOP_DATABASE_PORT as string, 10),
         user: process.env.REVPOP_DATABASE_USER,
         password: process.env.REVPOP_DATABASE_PASSWORD
+    },
+    revpop: {
+        url: process.env.REVPOP_NODE_URL,
+        account_from: process.env.REVPOP_ACCOUNT_FROM,
+        asset_id: process.env.REVPOP_ASSET_ID,
+        account_private_key: process.env.REVPOP_ACCOUNT_PRIVATE_KEY
     }
 }
 

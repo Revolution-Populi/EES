@@ -80,14 +80,14 @@ export default class CreateDepositHandler implements UseCase<CreateDeposit, Resp
     private validateContract(contract: Contract): Result<string>[] {
         const errors: Result<string>[] = []
 
-        if (contract.receiver !== config.eth.receiver) {
+        if (contract.receiver !== config.contract.receiver) {
             errors.push(Result.fail(new ReceiverIsInvalid()))
         }
 
-        const minimumDepositAmountWei = Web3.utils.toWei(config.eth.minimum_deposit_amount as string)
+        const minimumDepositAmountWei = Web3.utils.toWei(config.contract.minimum_deposit as string)
         if (contract.value < minimumDepositAmountWei) {
             errors.push(Result.fail(new DepositIsToSmall(
-                config.eth.minimum_deposit_amount as string,
+                config.contract.minimum_deposit as string,
                 Web3.utils.fromWei(contract.value, 'ether'),
             )))
         }

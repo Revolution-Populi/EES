@@ -33,6 +33,22 @@ export default class Deposit extends AggregateRoot {
         super(id)
     }
 
+    get txHash(): TxHash {
+        return this._txHash
+    }
+
+    get revpopAccount(): RevpopAccount | null {
+        return this._revpopAccount;
+    }
+
+    get revpopContractId(): string | null {
+        return this._revpopContractId;
+    }
+
+    get value(): string | null {
+        return this._value;
+    }
+
     confirmByUser(revpopAccount: RevpopAccount) {
         this._revpopAccount = revpopAccount
 
@@ -80,18 +96,6 @@ export default class Deposit extends AggregateRoot {
         }
 
         return left(new RedeemUnexpectedError(`Deposit in tx ${this._txHash.value} can't be redeemed.`));
-    }
-
-    get txHash(): TxHash {
-        return this._txHash
-    }
-
-    get revpopAccount(): RevpopAccount | null {
-        return this._revpopAccount;
-    }
-
-    get revpopContractId(): string | null {
-        return this._revpopContractId;
     }
 
     static createByUser(

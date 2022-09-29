@@ -1,6 +1,7 @@
 import {Controller, Get, HttpException} from '@nestjs/common';
 import {InitializeDeposit, initializeDepositHandler} from "../../Context/Wallet";
 import SuccessResponse from "../Response/SuccessResponse";
+import config from "../../Context/Wallet/config";
 
 @Controller('deposit')
 export default class InitializeDepositController {
@@ -14,7 +15,11 @@ export default class InitializeDepositController {
         }
 
         return Promise.resolve(SuccessResponse.create({
-            sessionId: depositOrError.value.getValue()?.sessionId.value
+            session_id: depositOrError.value.getValue()?.sessionId.value,
+            contract_address: config.eth.contract_address,
+            receiver_address: config.contract.receiver,
+            minimum_deposit: config.contract.minimum_deposit,
+            minimum_timelock: config.contract.minimum_timelock
         }))
     }
 }

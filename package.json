@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@nestjs/cli": "^9.1.1",
+    "@revolutionpopuli/revpopjs": "link:../revpopjs",
     "@nestjs/common": "^9.0.7",
     "@nestjs/config": "^2.2.0",
     "@nestjs/core": "^9.0.7",

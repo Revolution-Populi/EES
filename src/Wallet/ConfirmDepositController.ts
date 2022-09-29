@@ -4,9 +4,9 @@ import SuccessResponse from "../Response/SuccessResponse";
 import {DepositNotFoundError} from "../../Context/Wallet/Application/Command/ConfirmDeposit/Errors";
 
 interface ConfirmDepositDto {
-    sessionId: string,
+    sessionId: string
+    txHash: string
     revpopAccount: string,
-    txHash: string,
     hashLock: string
 }
 

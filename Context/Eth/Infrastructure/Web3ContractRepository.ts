@@ -12,10 +12,7 @@ export default class Web3ContractRepository implements ContractRepositoryInterfa
     private web3: Web3
     private contract: ContractWeb3
 
-    constructor(
-        private address: string,
-        private privateKey: string
-    ) {
+    constructor() {
         this.web3 = new Web3(new Web3.providers.HttpProvider(
             `https://${config.eth.network}.infura.io/v3/${config.eth_provider.infura.api_key}`
         ))
@@ -30,9 +27,7 @@ export default class Web3ContractRepository implements ContractRepositoryInterfa
     }
 
     async load(txHash: string, contractId: string): Promise<Contract> {
-        const contractData = await this.contract.methods.getContract(contractId).call({
-            from: this.address
-        })
+        const contractData = await this.contract.methods.getContract(contractId).call()
 
         const tx = await this.loadTx(txHash)
         const block = await this.loadBlock(tx.blockNumber as number)
@@ -56,14 +51,14 @@ export default class Web3ContractRepository implements ContractRepositoryInterfa
 
         try {
             gas = await this.contract.methods.withdraw(contractId, secret).estimateGas({
-                from: this.address
+                from: config.contract.receiver
             })
         } catch (e) {
             return new RedeemUnexpectedError(contractId, e.message)
         }
 
         const tx = {
-            from: this.address,
+            from: config.contract.receiver,
             to: this.contract.options.address,
             gas,
             data: this.contract.methods.withdraw(contractId, secret).encodeABI()
