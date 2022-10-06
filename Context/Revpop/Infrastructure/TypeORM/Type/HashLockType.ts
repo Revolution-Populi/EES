@@ -4,6 +4,7 @@ import HashLock from "../../../Domain/HashLock";
 const HashLockType: EntitySchemaColumnOptions = {
     type: String,
     name: 'hash_lock',
+    nullable: false,
     transformer: {
         to(hashLock: HashLock): string {
             return hashLock.value

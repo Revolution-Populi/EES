@@ -6,7 +6,9 @@ import {UnexpectedError} from "../../../../Core/Logic/AppError";
 import {DepositNotFound} from "./Errors";
 import Deposit from "../../../Domain/Deposit";
 import TxHash from "../../../Domain/TxHash";
-import HashLock from "../../../../Wallet/Domain/HashLock";
+import HashLock from "../../../Domain/HashLock";
+import TimeLock from "../../../Domain/TimeLock";
+import Amount from "../../../Domain/Amount";
 
 type Response = Either<
     UnexpectedError |
@@ -21,12 +23,15 @@ export default class ConfirmDepositByBlockchainHandler implements UseCase<Confir
 
     async execute(command: ConfirmDepositByBlockchain): Promise<Response> {
         const deposit = await this._repository.getByTxHash(command.txHash)
+        const amount = Amount.create(command.value)
+        const hashLock = HashLock.create(command.hashLock)
+        const timeLock = TimeLock.create(command.timeLock)
 
         if (deposit === null) {
             const txHashOrError = TxHash.create(command.txHash)
             const hashLockOrError = HashLock.create(command.hashLock)
 
-            const combinedPropsResult = Result.combine([txHashOrError, hashLockOrError]);
+            const combinedPropsResult = Result.combine([txHashOrError, amount, hashLock, timeLock]);
 
             if (combinedPropsResult.isFailure) {
                 return left(Result.fail<void>(combinedPropsResult.error)) as Response;
@@ -34,15 +39,20 @@ export default class ConfirmDepositByBlockchainHandler implements UseCase<Confir
 
             const deposit = Deposit.createByBlockchain(
                 txHashOrError.getValue() as TxHash,
-                command.value,
-                hashLockOrError.getValue() as HashLock
+                amount.getValue() as Amount,
+                hashLock.getValue() as HashLock,
+                timeLock.getValue() as TimeLock
             )
             await this._repository.create(deposit)
 
             return right(Result.ok<void>());
         }
 
-        deposit.confirmByBlockchain()
+        deposit.confirmByBlockchain(
+            amount.getValue() as Amount,
+            hashLock.getValue() as HashLock,
+            timeLock.getValue() as TimeLock
+        )
 
         await this._repository.save(deposit)
 

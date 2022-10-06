@@ -1,4 +1,5 @@
 import {expect} from 'chai';
+import dayjs from "dayjs";
 import StubRepository from '../../../../../../Context/Revpop/Infrastructure/StubRepository';
 import ConfirmDepositByUser
     from '../../../../../../Context/Revpop/Application/Command/ConfirmDepositByUser/ConfirmDepositByUser';
@@ -7,12 +8,16 @@ import Deposit from '../../../../../../Context/Revpop/Domain/Deposit';
 import TxHash from '../../../../../../Context/Revpop/Domain/TxHash';
 import DepositConfirmedEvent from '../../../../../../Context/Revpop/Domain/Event/DepositConfirmedEvent';
 import HashLock from "../../../../../../Context/Revpop/Domain/HashLock";
+import TimeLock from "../../../../../../Context/Revpop/Domain/TimeLock";
+import Amount from "../../../../../../Context/Revpop/Domain/Amount";
 
 describe('Revpop::ConfirmDepositByUserHandler', () => {
     let repository: StubRepository;
     let handler: ConfirmDepositByUserHandler;
+    const amount = '1000'
     const txHash = '0x2592cf699903e83bfd664aa4e339388fd044fe31643a85037be803a5d162729f'
     const hashLock = '0x14383da019a0dafdf459d62c6f9c1aaa9e4d0f16554b5c493e85eb4a3dfac55c'
+    const timeLock = dayjs().add(1, 'month').unix()
 
     beforeEach(function() {
         repository = new StubRepository()
@@ -45,8 +50,9 @@ describe('Revpop::ConfirmDepositByUserHandler', () => {
             beforeEach(async () => {
                 deposit = Deposit.createByBlockchain(
                     TxHash.create(txHash).getValue() as TxHash,
-                    '1000',
-                    HashLock.create(hashLock).getValue() as HashLock
+                    Amount.create(amount).getValue() as Amount,
+                    HashLock.create(hashLock).getValue() as HashLock,
+                    TimeLock.create(timeLock).getValue() as TimeLock
                 )
                 await repository.create(deposit)
             })
@@ -55,9 +61,9 @@ describe('Revpop::ConfirmDepositByUserHandler', () => {
                 const command = new ConfirmDepositByUser(txHash,'revpopAccount', hashLock)
                 const result = await handler.execute(command)
 
-                expect(result.isLeft()).false
                 expect(result.isRight()).true
-                expect(repository.size).equals(1)
+
+                expect(deposit.revpopAccount?.value).equals('revpopAccount')
             });
 
             it('DepositConfirmedEvent should be added', async () => {

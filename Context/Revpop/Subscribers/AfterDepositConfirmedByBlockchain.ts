@@ -14,7 +14,7 @@ export class AfterDepositConfirmedByBlockchain implements HandlerInterface<Depos
     }
 
     private async onDepositConfirmedByBlockchainEvent(event: DepositCreatedEvent) {
-        const command = new ConfirmDepositByBlockchain(event.txHash, event.value, event.hashLock)
+        const command = new ConfirmDepositByBlockchain(event.txHash, event.value, event.hashLock, event.timeLock)
 
         const result = await confirmDepositByBlockchainHandler.execute(command)
 

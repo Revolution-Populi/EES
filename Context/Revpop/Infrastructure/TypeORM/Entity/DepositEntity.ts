@@ -3,7 +3,9 @@ import Deposit from "../../../Domain/Deposit";
 import UniqueEntityIDType from "../Type/UniqueEntityIDType";
 import RevpopAccountType from "../Type/RevpopAccountType";
 import TxHashType from "../Type/TxHashType";
+import AmountType from "../Type/AmountType";
 import HashLockType from "../Type/HashLockType";
+import TimeLockType from "../Type/TimeLockType";
 
 const DepositEntity = new EntitySchema<Deposit>({
     name: "Deposit",
@@ -13,12 +15,9 @@ const DepositEntity = new EntitySchema<Deposit>({
         // @ts-ignore
         _revpopAccount: RevpopAccountType,
         _txHash: TxHashType,
-        _value: {
-            type: String,
-            name: 'value',
-            nullable: true
-        },
+        _value: AmountType,
         _hashLock: HashLockType,
+        _timeLock: TimeLockType,
         _revpopContractId: {
             type: String,
             name: 'revpop_contract_id',

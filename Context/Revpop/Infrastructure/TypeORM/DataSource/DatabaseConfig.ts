@@ -13,9 +13,9 @@ const DatabaseConfig: DataSourceOptions = {
     database: config.db.name,
     entities: [DepositEntity],
     migrations: [path.join(__dirname, '..', 'migrations', '*.ts')],
-    subscribers: [Subscriber],
+    subscribers: config.isTest ? [] : [Subscriber],
     migrationsRun: config.isTest,
-    logging: !config.isTest
+    logging: false //!config.isTest
 }
 
 export default DatabaseConfig

@@ -1,24 +1,30 @@
 import ValueObject from "../../Core/Domain/ValueObject";
 import {Result} from "../../Core";
 
-interface TxHashProps {
+interface Props {
     value: string;
 }
 
-export default class HashLock extends ValueObject<TxHashProps> {
-    private constructor(props: TxHashProps) {
+export default class HashLock extends ValueObject<Props> {
+    private constructor(props: Props) {
         super(props);
     }
 
+    get value(): string {
+        return this.props.value
+    }
+
     public static create(hashLock: string): Result<HashLock> {
-        if (!hashLock || hashLock.length === 0) {
-            return Result.fail<HashLock>('Must provide a hashlock')
+        if (hashLock.length === 0) {
+            return Result.fail<HashLock>('HashLock should be provided')
         }
 
         if (!/^0x([A-Fa-f0-9]{64})$/.test(hashLock)) {
-            return Result.fail<HashLock>('Hashlock is invalid')
+            return Result.fail<HashLock>('HashLock is invalid')
         }
 
-        return Result.ok<HashLock>(new HashLock({value: hashLock}))
+        return Result.ok<HashLock>(new HashLock({
+            value: hashLock
+        }))
     }
 }

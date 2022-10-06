@@ -1,4 +1,5 @@
 import {expect} from 'chai';
+import dayjs from "dayjs";
 import {DataSource} from 'typeorm';
 import initDataSourceTest from '../../../Context/Revpop/Infrastructure/TypeORM/DataSource/DataSourceTest'
 import TypeOrmRepository from '../../../Context/Revpop/Infrastructure/TypeOrmRepository';
@@ -16,10 +17,16 @@ import CreateContractInRevpopHandler
     from "../../../Context/Revpop/Application/Command/CreateContractInRevpop/CreateContractInRevpopHandler";
 import RedeemDepositHandler from '../../../Context/Revpop/Application/Command/RedeemDeposit/RedeemDepositHandler';
 import '../../../Context/Revpop/Subscribers'
+import ConverterInterface from "../../../Context/Revpop/Domain/ConverterInterface";
+import Converter from "../../../Context/Revpop/Infrastructure/Converter";
+import BlockchainApiInterface from "../../../Context/Revpop/Domain/BlockchainApiInterface";
+import StubBlockchainApi from "../../../Context/Revpop/Infrastructure/BlockchainApi/Stub";
 
 describe('Revpop context integration test', async () => {
     let dataSourceTest: DataSource
     let repository: TypeOrmRepository
+    let converter: ConverterInterface
+    let blockchainApi: BlockchainApiInterface
 
     let confirmDepositByBlockchainHandler: ConfirmDepositByBlockchainHandler
     let confirmDepositByUserHandler: ConfirmDepositByUserHandler
@@ -29,9 +36,12 @@ describe('Revpop context integration test', async () => {
     before(async () => {
         dataSourceTest = await initDataSourceTest()
         repository = new TypeOrmRepository(dataSourceTest)
+        converter = new Converter()
+        blockchainApi = new StubBlockchainApi()
+
         confirmDepositByUserHandler = new ConfirmDepositByUserHandler(repository)
         confirmDepositByBlockchainHandler = new ConfirmDepositByBlockchainHandler(repository)
-        createContractInRevpop = new CreateContractInRevpopHandler(repository)
+        createContractInRevpop = new CreateContractInRevpopHandler(repository, converter, blockchainApi)
         redeemDepositHandler = new RedeemDepositHandler(repository)
     })
 
@@ -50,6 +60,7 @@ describe('Revpop context integration test', async () => {
         const txHash = '0x2592cf699903e83bfd664aa4e339388fd044fe31643a85037be803a5d162729f'
         const revpopAccount = 'revpop_account'
         const hashLock = '0x14383da019a0dafdf459d62c6f9c1aaa9e4d0f16554b5c493e85eb4a3dfac55c'
+        const timeLock = dayjs().add(1, 'week').unix()
 
         // Confirm deposit by user
         const commandConfirmDepositByUser = new ConfirmDepositByUser(txHash, revpopAccount, hashLock)
@@ -57,7 +68,7 @@ describe('Revpop context integration test', async () => {
         expect(resultConfirmDepositByUser.isRight(), 'Revpop:ConfirmDepositByUser error').true
 
         // Confirm deposit by blockchain
-        const commandConfirmDepositByBlockchain = new ConfirmDepositByBlockchain(txHash, '1000', hashLock)
+        const commandConfirmDepositByBlockchain = new ConfirmDepositByBlockchain(txHash, '100000000000000000', hashLock, timeLock)
         const resultConfirmDepositByBlockchain = await confirmDepositByBlockchainHandler.execute(commandConfirmDepositByBlockchain)
         expect(resultConfirmDepositByUser.isRight(), 'Revpop:ConfirmDepositByBlockchain error').true
 

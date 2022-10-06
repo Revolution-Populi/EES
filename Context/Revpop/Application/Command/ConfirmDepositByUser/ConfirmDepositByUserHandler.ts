@@ -5,8 +5,8 @@ import {UnexpectedError} from "../../../../Core/Logic/AppError";
 import ConfirmDepositByUser from "./ConfirmDepositByUser";
 import Deposit from "../../../Domain/Deposit";
 import TxHash from "../../../Domain/TxHash";
+import HashLock from "../../../Domain/HashLock";
 import RevpopAccount from "../../../Domain/RevpopAccount";
-import HashLock from "../../../../Wallet/Domain/HashLock";
 import {DepositAlreadyExists} from "./Errors";
 
 type Response = Either<
@@ -37,7 +37,7 @@ export default class ConfirmDepositByUserHandler implements UseCase<ConfirmDepos
             const deposit = Deposit.createByUser(
                 txHashOrError.getValue() as TxHash,
                 revpopAccountOrError.getValue() as RevpopAccount,
-                hashLockOrError.getValue() as HashLock,
+                hashLockOrError.getValue() as HashLock
             )
 
             await this._repository.create(deposit);

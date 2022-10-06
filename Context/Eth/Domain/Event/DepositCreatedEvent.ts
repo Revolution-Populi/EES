@@ -10,7 +10,7 @@ export default class DepositCreatedEvent implements DomainEventInterface {
         public receiver: string,
         public value: string,
         public hashLock: string,
-        public timelock: number,
+        public timeLock: number,
     ) {}
 
     static eventName(): string {

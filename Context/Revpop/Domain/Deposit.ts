@@ -2,6 +2,9 @@ import AggregateRoot from "../../Core/Domain/AggregateRoot";
 import UniqueEntityID from "../../Core/Domain/UniqueEntityID";
 import TxHash from "./TxHash";
 import RevpopAccount from "./RevpopAccount";
+import Amount from "./Amount";
+import HashLock from "./HashLock";
+import TimeLock from "./TimeLock";
 import DepositConfirmedEvent from "./Event/DepositConfirmedEvent";
 import {Either, left, Result, right} from "../../Core";
 import {
@@ -9,7 +12,6 @@ import {
     RedeemUnexpectedError
 } from "./Errors";
 import DepositRedeemedEvent from "./Event/DepositRedeemedEvent";
-import HashLock from "./HashLock";
 
 enum STATUS {
     CREATED_BY_USER = 1,
@@ -25,8 +27,9 @@ export default class Deposit extends AggregateRoot {
     constructor(
         private _txHash: TxHash,
         private _status: number,
-        private _value: string | null,
-        private _hashLock: HashLock | null,
+        private _value: Amount | null,
+        private _hashLock: HashLock,
+        private _timeLock: TimeLock | null,
         private _revpopAccount: RevpopAccount | null,
         id?: UniqueEntityID
     ) {
@@ -37,16 +40,24 @@ export default class Deposit extends AggregateRoot {
         return this._txHash
     }
 
+    get value(): Amount | null {
+        return this._value;
+    }
+
+    get hashLock(): HashLock {
+        return this._hashLock
+    }
+
+    get timeLock(): TimeLock | null {
+        return this._timeLock
+    }
+
     get revpopAccount(): RevpopAccount | null {
         return this._revpopAccount;
     }
 
     get revpopContractId(): string | null {
         return this._revpopContractId;
-    }
-
-    get value(): string | null {
-        return this._value;
     }
 
     confirmByUser(revpopAccount: RevpopAccount) {
@@ -62,9 +73,12 @@ export default class Deposit extends AggregateRoot {
         }
     }
 
-    confirmByBlockchain() {
+    confirmByBlockchain(amount: Amount, hashLock: HashLock, timeLock: TimeLock) {
         if (this._status === STATUS.CREATED_BY_USER) {
             this._status = STATUS.CONFIRMED
+            this._value = amount
+            this._hashLock = hashLock
+            this._timeLock = timeLock
 
             this.addDomainEvent(new DepositConfirmedEvent(
                 this._txHash.value,
@@ -103,14 +117,15 @@ export default class Deposit extends AggregateRoot {
         revpopAccount: RevpopAccount,
         hashLock: HashLock,
     ): Deposit {
-        return new Deposit(txHash, STATUS.CREATED_BY_USER, null, hashLock, revpopAccount)
+        return new Deposit(txHash, STATUS.CREATED_BY_USER, null, hashLock, null, revpopAccount)
     }
 
     static createByBlockchain(
         txHash: TxHash,
-        value: string,
-        hashLock: HashLock
+        amount: Amount,
+        hashLock: HashLock,
+        timeLock: TimeLock
     ): Deposit {
-        return new Deposit(txHash, STATUS.CREATED_BY_BLOCKCHAIN, value, hashLock, null)
+        return new Deposit(txHash, STATUS.CREATED_BY_BLOCKCHAIN, amount, hashLock, timeLock,null)
     }
 }

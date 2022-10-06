@@ -10,6 +10,10 @@ export default class RedeemTxHash extends ValueObject<TxHashProps> {
         super(props);
     }
 
+    get value(): string {
+        return this.props.value
+    }
+
     public static create(txHash: string): Result<RedeemTxHash> {
         if (txHash === null || txHash.length === 0) {
             return Result.fail<RedeemTxHash>('Must provide a transaction hash')

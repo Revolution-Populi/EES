@@ -9,13 +9,15 @@ import RedeemDepositHandler from './Application/Command/RedeemDeposit/RedeemDepo
 import TypeOrmRepository from "./Infrastructure/TypeOrmRepository";
 import DataSource from "./Infrastructure/TypeORM/DataSource/DataSource";
 import RevpopBlockchainApi from "./Infrastructure/BlockchainApi/Revpop";
+import Converter from "./Infrastructure/Converter";
 
 const repository = new TypeOrmRepository(DataSource)
+const converter = new Converter()
 const blockchainApi = new RevpopBlockchainApi()
 
 const confirmDepositByUserHandler = new ConfirmDepositByUserHandler(repository)
 const confirmDepositByBlockchainHandler = new ConfirmDepositByBlockchainHandler(repository)
-const createContractInRevpopHandler = new CreateContractInRevpopHandler(repository, blockchainApi)
+const createContractInRevpopHandler = new CreateContractInRevpopHandler(repository, converter, blockchainApi)
 const redeemDepositHandler = new RedeemDepositHandler(repository)
 
 export {ConfirmDepositByUser, confirmDepositByUserHandler}

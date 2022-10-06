@@ -10,6 +10,10 @@ export default class HashLock extends ValueObject<TxHashProps> {
         super(props);
     }
 
+    get value(): string {
+        return this.props.value
+    }
+
     public static create(hashLock: string): Result<HashLock> {
         if (!hashLock || hashLock.length === 0) {
             return Result.fail<HashLock>('Must provide a hashlock')

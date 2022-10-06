@@ -11,10 +11,6 @@ export default abstract class ValueObject<T extends ValueObjectProps> {
         this.props = Object.freeze(props);
     }
 
-    get value(): string {
-        return this.props.value;
-    }
-
     public equals(vo?: ValueObject<T>): boolean {
         if (vo === null || vo === undefined) {
             return false;

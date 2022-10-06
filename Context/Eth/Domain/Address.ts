@@ -10,6 +10,10 @@ export default class Address extends ValueObject<AddressProps> {
         super(props);
     }
 
+    get value(): string {
+        return this.props.value
+    }
+
     public static create(address: string): Result<Address> {
         if (address.length === 0) {
             return Result.fail<Address>('Must provide an address')

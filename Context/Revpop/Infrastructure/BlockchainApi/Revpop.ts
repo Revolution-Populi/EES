@@ -1,40 +1,82 @@
+import dayjs from "dayjs";
+import config from "../../config";
 import BlockchainApiInterface from "../../Domain/BlockchainApiInterface";
 //@ts-ignore
-import {Apis, ChainConfig, Manager} from "@revolutionpopuli/revpopjs-ws";
+import {Manager} from "@revolutionpopuli/revpopjs-ws";
 //@ts-ignore
 import { FetchChain, TransactionBuilder, PrivateKey } from "@revolutionpopuli/revpopjs";
-import config from "../../config";
+
+const PREIMAGE_HASH_CIPHER_SHA256 = 2
 
 export default class Revpop implements BlockchainApiInterface {
-    async issueAsset(amount: string, account_to: string): Promise<void> {
+    async createContract(accountToName: string, amount: number, hashLock: string, timeLock: number): Promise<string | null> {
         await this.connect()
+
         const accountFrom = await FetchChain("getAccount", config.revpop.account_from)
-        const accountTo = await FetchChain("getAccount", account_to)
+        const accountTo = await FetchChain("getAccount", accountToName)
 
-        const privateKey = PrivateKey.fromSeed(config.revpop.account_private_key as string);
+        const privateKey = PrivateKey.fromWif(config.revpop.account_private_key as string);
 
-        const tr = new TransactionBuilder();
-        tr.add_type_operation("asset_issue", {
+        const asset = await FetchChain("getAsset", config.revpop.asset_symbol)
+
+        if (asset === null) {
+            return null
+        }
+
+        const amountWithPrecision = amount * Math.pow(10, asset.get('precision'))
+
+        const txIssueAsset = new TransactionBuilder();
+        txIssueAsset.add_type_operation("asset_issue", {
             fee: {
                 amount: 0,
                 asset_id: 0
             },
             issuer: accountFrom.get('id'),
             asset_to_issue: {
-                amount: amount,
-                asset_id: config.revpop.asset_id
+                amount: amountWithPrecision,
+                asset_id: asset.get("id")
             },
-            issue_to_account: accountTo.get("id")
+            issue_to_account: accountFrom.get("id")
         });
-        tr.add_signer(privateKey)
-        const result = await tr.broadcast()
-        console.log(result)
+        txIssueAsset.set_required_fees()
+        txIssueAsset.add_signer(privateKey)
 
-        return Promise.resolve(undefined)
-    }
+        try {
+            await txIssueAsset.broadcast()
+        } catch (e: any) {
+            return null
+        }
 
-    createContract(accountFrom: string, accountTo: string, amount: string, hashLock: string, timeLock: number): Promise<void> {
-        return Promise.resolve(undefined);
+        const txHtlcCreate = new TransactionBuilder();
+        txHtlcCreate.add_type_operation("htlc_create", {
+            from: accountFrom.get('id'),
+            to: accountTo.get('id'),
+            fee: {
+                amount: 0,
+                asset_id: 0
+            },
+            amount: {
+                amount: amountWithPrecision,
+                asset_id: asset.get('id')
+            },
+            preimage_hash: [PREIMAGE_HASH_CIPHER_SHA256, hashLock],
+            preimage_size: hashLock.length,
+            // claim_period_seconds: 86400,
+            claim_period_seconds: timeLock - dayjs().unix()
+        });
+
+        txHtlcCreate.set_required_fees()
+        txHtlcCreate.add_signer(privateKey)
+
+        try {
+            await txHtlcCreate.broadcast()
+        } catch (e: any) {
+            return null
+        }
+
+        const accountFromUpdated = await FetchChain("getAccount", config.revpop.account_from)
+
+        return accountFromUpdated.get("htlcs_from").last()
     }
 
     private async connect() {
@@ -51,7 +93,6 @@ export default class Revpop implements BlockchainApiInterface {
             })
             .catch((e: any) => {
                 reject()
-                console.log(e)
             });
         })
     }

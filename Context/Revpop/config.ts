@@ -12,7 +12,7 @@ const config = {
     revpop: {
         url: process.env.REVPOP_NODE_URL,
         account_from: process.env.REVPOP_ACCOUNT_FROM,
-        asset_id: process.env.REVPOP_ASSET_ID,
+        asset_symbol: process.env.REVPOP_ASSET_SYMBOL,
         account_private_key: process.env.REVPOP_ACCOUNT_PRIVATE_KEY
     }
 }
